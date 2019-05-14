@@ -4,13 +4,14 @@ import os,sys
 import random
 import string
 import re
-import md5
+import hashlib
 import time
 import json
 import shutil
 import hashlib 
 import time
 import argparse
+import codecs
 
 script_path = os.path.split(os.path.realpath(sys.argv[0]))[0]
 
@@ -59,13 +60,15 @@ def getLuaFuncText():
 #获取png内容
 def getPngText():
     text = str(random.randint(1, 100)) * random.randint(1024, 10240)
-    text = text + "0000000049454e44ae426082".decode('hex')
-    return text
+    hex = "0000000049454e44ae426082"
+    text = text + hex
+    str_bytes = text.encode("utf_8","ignore")
+    return str_bytes
 
 #添加单个文件
 def addSingleFile(file_path):
     global target_path
-    print "add file " + file_path.replace(target_path, "")
+    print ("add file " + file_path.replace(target_path, ""))
     _, file_type = os.path.splitext(file_path)
     if file_type == ".lua":
         with open(file_path, "w") as fileObj:
@@ -86,16 +89,18 @@ def addFileTo(parent_folder, level, min_file_num = 0):
         target_file_type = ""
         relative_path = parent.replace(target_path, "")
         for file_type, match_config in match_rule.items():
-            if match_config.has_key("path_exclude") and relative_path.find(match_config["path_exclude"]) != -1:
+            if "path_exclude" in match_config.keys() and relative_path.find(match_config["path_exclude"]) != -1:
                 continue
-            if not match_config.has_key("path_include") or relative_path.find(match_config["path_include"]) != -1:
+            if "path_include" in match_config.keys() or relative_path.find(match_config["path_include"]) != -1:
                 target_file_type = file_type
                 break
         if target_file_type == "":
             continue
-
+        
         #创建文件数量
-        new_file_num = random.randint(len(files) / 2, len(files)) + min_file_num
+        minNum = int(len(files)/2)
+        maxNum = int(len(files))
+        new_file_num = random.randint(minNum, maxNum) + min_file_num
         for i in range(0, new_file_num):
             file_path = os.path.join(parent, getOneName() + target_file_type)
             addSingleFile(file_path)
@@ -104,7 +109,7 @@ def addFileTo(parent_folder, level, min_file_num = 0):
         if level > 2:
             continue
         #创建文件夹数量
-        new_fold_num = random.randint(len(folders) / 2, len(folders))
+        new_fold_num = random.randint(int(len(folders) / 2), len(folders))
         for i in range(0, new_fold_num):
             target_folder = os.path.join(parent, getOneName())
             #为了不阻断os.walk,延后创建文件夹
@@ -112,11 +117,11 @@ def addFileTo(parent_folder, level, min_file_num = 0):
 
     for folder_path in create_folder_list:
         try:
-            print "create folder " + folder_path.replace(target_path, "")
+            print ("create folder " + folder_path.replace(target_path, ""))
             os.mkdir(folder_path)
             addFileTo(folder_path, level + 1, random.randint(2, 5))
         except Exception as e:
-            print e
+            print (e)
 #----------------------------------------ended add file----------------------
 def changeSingleFileMD5(file_path):
     _, file_type = os.path.splitext(file_path)
@@ -129,7 +134,7 @@ def changeSingleFileMD5(file_path):
             text = "\n--#*" + "".join(random.sample(string.ascii_letters, 10)) + "*#--"
         else:
             text = " "*random.randint(1, 100)
-        fileObj.write(text)
+        fileObj.write(text.encode('utf-8','ignore'))
         fileObj.close()
 
 #改变文件md5
@@ -160,7 +165,7 @@ def main():
     target_path = app_args.target_dir
 
     if not os.path.exists(resource_path):
-        print "res path not exists: " + resource_path
+        print ("res path not exists: " + resource_path)
         exit(0)
     if target_path != resource_path:
         if os.path.exists(target_path):
@@ -168,9 +173,9 @@ def main():
         shutil.copytree(resource_path, target_path)
     
     addFileTo(target_path, 0)
-    print "\n\nstart modify file md5"
+    print ("\n\nstart modify file md5")
     changeFolderMD5(target_path)
-    print "finish!"
+    print ("finish!")
 
 if __name__ == "__main__":
     main()

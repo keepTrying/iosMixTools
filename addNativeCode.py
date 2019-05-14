@@ -5,17 +5,12 @@ import os,sys
 import random
 import string
 import re
-import md5
+import hashlib
 import time
 import json
 import shutil
-import hashlib 
 import time
 import argparse
-
-import sys 
-reload(sys) 
-sys.setdefaultencoding("utf-8")
 
 script_path = os.path.split(os.path.realpath(sys.argv[0]))[0]
 #垃圾代码临时存放目录
@@ -27,7 +22,7 @@ backup_ios_folder = os.path.join(script_path, "./backup_ios")
 ignore_file_list = ["main.m", "GNative.mm", "MobClickCpp.mm"]
 #忽略文件夹列表，不处理这些文件夹下的文件
 ignore_folder_list = ["thirdparty","Support",".svn","paycenter","UMMobClick.framework","UMessage_Sdk_1.5.0a","TencentOpenApi_IOS_Bundle.bundle",
-                        "TencentOpenAPI.framework","Bugly.framework","AlipaySDK.framework","AlipaySDK.bundle"]
+                        "TencentOpenAPI.framework","Bugly.framework","AlipaySDK.framework","AlipaySDK.bundle","Assets.xcassets","Base.lproj"]
 
 #创建函数数量范围
 create_func_min = 2
@@ -76,7 +71,7 @@ def appendTextToOCFile(file_path, text):
         fileObj.close()
         end_mark_index = old_text.rfind("@end")
         if end_mark_index == -1:
-            print "\t非法的结尾格式: " + file_path
+            print ("\t非法的结尾格式: " + file_path)
             return
         new_text = old_text[:end_mark_index]
         new_text = new_text + text + "\n"
@@ -93,11 +88,11 @@ def dealWithOCFile(filename, file_path):
     pre_name = file_path[:end_index]
     header_path = pre_name + ".h"
     if not os.path.exists(header_path):
-        print "\t相应头文件不存在：" + file_path
+        print ("\t相应头文件不存在：" + file_path)
         return
 
     new_func_num = random.randint(create_func_min, create_func_max)
-    print "\t给%s添加%d个方法" %(filename, new_func_num)
+    print ("\t给%s添加%d个方法" %(filename, new_func_num))
     for i in range(new_func_num):
         header_text = getOCHeaderFuncText()
         # print "add %s to %s" %(header_text, header_path.replace(target_ios_folder, ""))
@@ -115,7 +110,7 @@ def addOCFunctions(parent_folder):
                 need_ignore = ignore_folder
                 break
         if need_ignore:
-            print "\t忽略文件夹" + ignore_folder
+            print ("\t忽略文件夹" + ignore_folder)
             continue
 
         for file in files:
@@ -139,7 +134,7 @@ def getOCHeaderFileText(class_name):
         "\tfloat %s;\n" %(getOneName()),
         "}\n\n@end"
     ]
-    return string.join(text)
+    return ''.join(text)
 
 #新创建的垃圾文件mm模板
 def getOCMMFileText(class_name):
@@ -148,7 +143,7 @@ def getOCMMFileText(class_name):
         "@implementation %s\n" %(class_name),
         "\n\n@end"
     ]
-    return string.join(text)
+    return ''.join(text)
 
 #添加垃圾文件到parent_folder/trash/
 def addOCFile(parent_folder):
@@ -162,7 +157,7 @@ def addOCFile(parent_folder):
     for i in range(file_num):
         file_name = getOneName()
         file_list.append("#import \"" + file_name + ".h\"")
-        print "\t创建OC文件 trash/" + file_name
+        print ("\t创建OC文件 trash/" + file_name)
         header_text = getOCHeaderFileText(file_name)
         full_path = os.path.join(target_folder, file_name + ".h")
         with open(full_path, "w") as fileObj:
@@ -193,27 +188,27 @@ def main():
     global ios_src_path, backup_ios_folder, target_ios_folder
     ios_src_path = app_args.oc_folder
     if not os.path.exists(ios_src_path):
-        print "oc_folder path not exist."
+        print ("oc_folder path not exist.")
         exit(0)
 
-    print "拷贝OC代码到target_ios"
+    print ("拷贝OC代码到target_ios")
     if os.path.exists(target_ios_folder):
         shutil.rmtree(target_ios_folder)
     shutil.copytree(ios_src_path, target_ios_folder)
 
-    print "开始创建oc文件到trash目录"
+    print ("开始创建oc文件到trash目录")
     addOCFile(target_ios_folder)
-    print "\n开始添加oc方法"
+    print ("\n开始添加oc方法")
     addOCFunctions(target_ios_folder)
 
     if app_args.replace_ios:
-        print "\n用target_ios替换原目录"
-        print "\t备份OC代码到" + os.path.abspath(backup_ios_folder)
+        print ("\n用target_ios替换原目录")
+        print ("\t备份OC代码到" + os.path.abspath(backup_ios_folder))
         if os.path.exists(backup_ios_folder):
             shutil.rmtree(backup_ios_folder)
         shutil.copytree(ios_src_path, backup_ios_folder)
 
-        print "\t开始替换"
+        print ("\t开始替换")
         trash_folder = os.path.join(ios_src_path, "trash")
         if os.path.exists(trash_folder):
             shutil.rmtree(trash_folder)
@@ -225,11 +220,11 @@ def main():
                     full_path = os.path.join(parent, file)
                     target_path = full_path.replace(target_ios_folder, ios_src_path)
                     shutil.copy(full_path, target_path)
-        print "替换成功\n需要在Xcode上重新添加trash文件下的oc文件"
+        print ("替换成功\n需要在Xcode上重新添加trash文件下的oc文件")
     else:
-        print "垃圾代码生成完毕，垃圾代码目录：" + os.path.abspath(target_ios_folder)
+        print ("垃圾代码生成完毕，垃圾代码目录：" + os.path.abspath(target_ios_folder))
 
-    print "\nfinished"
+    print ("\nfinished")
 
 if __name__ == "__main__":
     main()

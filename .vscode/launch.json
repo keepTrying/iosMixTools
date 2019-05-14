@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 当前文件",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                
+                //renameNave.py 改变前缀
+                // "--old_prefix","FX",
+                // "--new_prefix","HHA",
+                // "--old_method_prefix","fxf",
+                // "--new_method_prefix","hha",
+                // "--ios_path","/Users/mac/iosapp/GameGo/GameGo",
+                // "--proj_path","/Users/mac/iosapp/GameGo/GameGo.xcodeproj"
+
+                //autoBornCode.py 垃圾资源、更改md5
+                // "--res","/Users/mac/iosapp/GameGo/GameGo/Assets.xcassets",
+                // "--target","/Users/mac/iosapp/GameGo/GameGo/Assets.xcassets"
+
+                //addNativeCode.py 垃圾代码
+                // "--oc_folder","/Users/mac/iosapp/GameGo/GameGo",
+                // "--replace",""
+
+
+                // oc_mix.py 混淆
+                "--class_prefix","HHA",//类名前缀
+                "--method_prefix","hha",//方法前缀
+                "--code_path","/Users/mac/iosapp/GameGo/GameGo"//代码路径
+            ]
+        }
+    ]
+}

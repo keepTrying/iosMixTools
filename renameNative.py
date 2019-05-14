@@ -4,26 +4,26 @@ import os,sys
 import random
 import string
 import re
-import md5
+import hashlib
 import time
 import json
 import shutil
 import hashlib 
 import time
 import argparse
-
-import sys 
-reload(sys) 
-sys.setdefaultencoding("utf-8")
+import codecs
 
 script_path = os.path.split(os.path.realpath(sys.argv[0]))[0]
 add_prefix = ""
 old_prefix = "xxx"
 new_prefix = "zzz"
+old_method_prefix = "xxx"
+new_method_prefix = "zzz"
 ios_src_path = ""
 project_file_path = ""
+ignore_path_set = set()
 
-ignore_path_text = [".a", ".png", ".plist", ".storyboard", ".pch"]
+ignore_path_text = [".a", ".png", ".plist", ".pch",".jpg",".xcassets",".DS_Store"]
 
 #首字母大写
 def isNeedIgnore(file_path):
@@ -34,7 +34,8 @@ def isNeedIgnore(file_path):
     return False
 
 def replaceStringInFile(full_path, old_text, new_text):
-    with open(full_path, "r") as fileObj:
+    print ("\t替换文本: %s -> %s 路径：%s" %(old_text,new_text,full_path))
+    with codecs.open(full_path,"r","utf-8","ignore",) as fileObj:
         all_text = fileObj.read()
         fileObj.close()
 
@@ -49,53 +50,86 @@ def renameFileInXcodeProj(old_file_name, new_file_name):
         replaceStringInFile(project_file_path, old_file_name, new_file_name)
 
 def renameInAllFile(old_text, new_text):
-    global ios_src_path
+    global ios_src_path,ignore_path_set
     for parent, folders, files in os.walk(ios_src_path):
         for file in files:
             full_path = os.path.join(parent, file)
-            replaceStringInFile(full_path, old_text, new_text)
+            if not full_path in ignore_path_set:
+                replaceStringInFile(full_path, old_text, new_text)
 
 def dealWithIos():
-    print "开始重命名类名"
-    global old_prefix, new_prefix, ios_src_path
+    print ("开始重命名类名,方法名")
+    global old_prefix, new_prefix, ios_src_path,old_method_prefix,new_method_prefix,ignore_path_set
+
+    renameAllFileDic = {}
+    renameFileDic = {}
+    renameFolderDic = {}
+
     for parent, folders, files in os.walk(ios_src_path):
         for file in files:
             old_full_path = os.path.join(parent, file)
-            if file.startswith(old_prefix) and not isNeedIgnore(old_full_path):
+            if isNeedIgnore(old_full_path):
+                ignore_path_set.add(old_full_path)
+    
+    for parent, folders, files in os.walk(ios_src_path):
+        for folder in folders:
+            old_full_path = os.path.join(parent, folder)
+            if isNeedIgnore(old_full_path):
+                ignore_path_set.add(old_full_path)
+
+    for parent, folders, files in os.walk(ios_src_path):
+        for file in files:
+            old_full_path = os.path.join(parent, file)
+            if file.startswith(old_prefix) and not old_full_path in ignore_path_set:
                 new_file_name = file.replace(old_prefix, new_prefix)
-                print "\t重命名文件: %s -> %s" %(file, new_file_name)
+                print ("\t重命名文件: %s -> %s" %(file, new_file_name))
 
                 new_full_path = os.path.join(parent, new_file_name)
-                os.rename(old_full_path, new_full_path)
+                renameFileDic[old_full_path] = new_full_path
                 #在项目工程中改名
                 renameFileInXcodeProj(file, new_file_name)
 
-                #在可能引用的地方替换
+                #在可能引用的地方替换类名
                 old_file_base_name = os.path.splitext(file)[0]
                 new_file_base_name = old_file_base_name.replace(old_prefix, new_prefix)
-                renameInAllFile(old_file_base_name, new_file_base_name)
+
+                renameAllFileDic[old_file_base_name]=new_file_base_name
+                # renameInAllFile(old_file_base_name, new_file_base_name)
+
+                #更改引用的方法名
+                renameAllFileDic[old_method_prefix+"_"] = new_method_prefix+"_"
+                # renameInAllFile(old_method_prefix+"_",new_method_prefix+"_")
 
     for parent, folders, files in os.walk(ios_src_path):
         for folder in folders:
             old_full_path = os.path.join(parent, folder)
-            if folder.startswith(old_prefix) and not isNeedIgnore(old_full_path):
+            if folder.startswith(old_prefix) and not old_full_path in ignore_path_set:
                 new_folder_name = folder.replace(old_prefix, new_prefix)
-                print "\t重命名文件夹: %s -> %s" %(folder, new_folder_name)
+                print ("\t重命名文件夹: %s -> %s" %(folder, new_folder_name))
                 new_full_path = os.path.join(parent, new_folder_name)
-                os.rename(old_full_path, new_full_path)
+                renameFolderDic[old_full_path]=new_full_path
                 #在项目工程中改名
+                renameAllFileDic[folder] = new_folder_name
                 renameFileInXcodeProj(folder, new_folder_name)
-    print "finish\n"
+
+    for key in renameAllFileDic:
+        renameInAllFile(key,renameAllFileDic[key])
+    for key in renameFileDic:
+        os.rename(key,renameFileDic[key])
+    for key in renameFolderDic:
+        os.rename(key,renameFolderDic[key])
+    
+    print ("finish\n")
 
 def addPreFix():
-    print "开始添加前缀"
+    print ("开始添加前缀")
     global add_prefix, ios_src_path
     for parent, folders, files in os.walk(ios_src_path):
         for file in files:
             old_full_path = os.path.join(parent, file)
             if not isNeedIgnore(old_full_path):
                 new_file_name = add_prefix + file
-                print "\t重命名文件: %s -> %s" %(file, new_file_name)
+                print ("\t重命名文件: %s -> %s" %(file, new_file_name))
 
                 new_full_path = os.path.join(parent, new_file_name)
                 os.rename(old_full_path, new_full_path)
@@ -113,43 +147,52 @@ def addPreFix():
             old_full_path = os.path.join(parent, folder)
             if not isNeedIgnore(old_full_path):
                 new_folder_name = add_prefix + folder
-                print "\t重命名文件夹: %s -> %s" %(folder, new_folder_name)
+                print ("\t重命名文件夹: %s -> %s" %(folder, new_folder_name))
                 new_full_path = os.path.join(parent, new_folder_name)
                 os.rename(old_full_path, new_full_path)
                 #在项目工程中改名
                 renameFileInXcodeProj(folder, new_folder_name)
-    print "finish\n"
+    print ("finish\n")
 
 
-#----------------------------------------------------main------------------------------------------------        
+
 def parse_args():
     global script_path, proj_ios_path
     parser = argparse.ArgumentParser(description='修改类名前缀工具.\n')
     parser.add_argument('--add_prefix', dest='add_prefix', type=str, required=False, default="", help='添加类名前缀')
     parser.add_argument('--old_prefix', dest='old_prefix', type=str, required=False, help='原类名前缀')
     parser.add_argument('--new_prefix', dest='new_prefix', type=str, required=False, help='替换后类名前缀')
+    parser.add_argument('--old_method_prefix', dest='old_method_prefix', type=str, required=False, help='原方法名前缀')
+    parser.add_argument('--new_method_prefix', dest='new_method_prefix', type=str, required=False, help='替换后方法名前缀')
     parser.add_argument('--ios_path', dest='ios_path', type=str, required=True, help='OC文件目录')
     parser.add_argument('--proj_path', dest='proj_path', type=str, required=False, default="", help='xx.xcodeproj路径')
     args = parser.parse_args()
     return args
 
+#----------------------------------------------------main------------------------------------------------        
 def main():
-    global old_prefix, new_prefix, ios_src_path, project_file_path, add_prefix
+    global old_prefix, new_prefix, ios_src_path, project_file_path, add_prefix,old_method_prefix,new_method_prefix
+
     app_args = parse_args()
 
     add_prefix = app_args.add_prefix
     old_prefix = app_args.old_prefix
     new_prefix = app_args.new_prefix
+    old_method_prefix = app_args.old_method_prefix
+    new_method_prefix = app_args.new_method_prefix
     ios_src_path = app_args.ios_path
+
+
     project_file_path = os.path.join(app_args.proj_path, "project.pbxproj")
     if not os.path.exists(ios_src_path):
-        print "ios_path not exists: " +  ios_src_path
+        print ("ios_path not exists: " +  ios_src_path)
         exit(0)
     if not os.path.exists(project_file_path):
-        print "proj_path not exists: " +  project_file_path
+        print ("proj_path not exists: " +  project_file_path)
 
-    print "请提前备份文件夹或确认在版本管理软件中"
-    raw_input("回车继续执行")
+    print ("请提前备份文件夹或确认在版本管理软件中")
+    
+    input("回车继续执行")
     if add_prefix and add_prefix != "":
         addPreFix()
         exit(0)
