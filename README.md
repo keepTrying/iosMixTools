@@ -79,8 +79,19 @@ match_rule = {
 
 **TODO**音效文件修改MD5值
 
+### 4. iOS方法混淆
+此脚本会扫描代码文件夹，将代码路径中所有以类名前缀开头的.m、.h、.mm文件中以特定前缀开头的方法名混淆，在项目工程中生成“oc_mix.h”文件，可以全局导入，由于混淆类名需要重命名头文件，暂时不支持,方法名前缀后用“_”隔开。
 
-### 4. iOS加固插件
+#### 参数说明
+
+* `--method_prefix` 方法名称前缀
+* `--class_prefix` 类名前缀
+* `--code_path` 代码路径
+
+运行示例：
+`python oc_mix.py --method_prefix akk --class_prefix AKK --code_path xx/xx/xx/`
+
+### 5. iOS加固插件
 [五款iOS加固产品测试与点评](http://telecom.chinabyte.com/300/14570300.shtml)
 
 [加固产品比较](https://www.codercto.com/a/28193.html)
