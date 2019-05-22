@@ -13,26 +13,26 @@
             "args": [
                 
                 //renameNave.py 改变前缀
-                // "--old_prefix","FX",
-                // "--new_prefix","HHA",
-                // "--old_method_prefix","fxf",
-                // "--new_method_prefix","hha",
-                // "--ios_path","/Users/mac/iosapp/GameGo/GameGo",
-                // "--proj_path","/Users/mac/iosapp/GameGo/GameGo.xcodeproj"
+                // "--old_prefix","TX",
+                // "--new_prefix","QM",
+                // "--old_method_prefix","tx_",
+                // "--new_method_prefix","qm_",
+                // "--ios_path","/Users/mac/iosapp/evenTheFull/evenTheFull",
+                // "--proj_path","/Users/mac/iosapp/evenTheFull/evenTheFull.xcodeproj"
 
                 //autoBornCode.py 垃圾资源、更改md5
-                // "--res","/Users/mac/iosapp/GameGo/GameGo/Assets.xcassets",
-                // "--target","/Users/mac/iosapp/GameGo/GameGo/Assets.xcassets"
+                // "--res","/Users/mac/iosapp/evenTheFull/evenTheFull/Assets.xcassets",
+                // "--target","/Users/mac/iosapp/evenTheFull/evenTheFull/Assets.xcassets"
 
                 //addNativeCode.py 垃圾代码
-                // "--oc_folder","/Users/mac/iosapp/GameGo/GameGo",
+                // "--oc_folder","/Users/mac/iosapp/evenTheFull/evenTheFull",
                 // "--replace",""
 
 
                 // oc_mix.py 混淆
-                "--class_prefix","HHA",//类名前缀
-                "--method_prefix","hha",//方法前缀
-                "--code_path","/Users/mac/iosapp/GameGo/GameGo"//代码路径
+                "--class_prefix","QM",//类名前缀
+                "--method_prefix","qm",//方法前缀
+                "--code_path","/Users/mac/iosapp/evenTheFull/evenTheFull"//代码路径
             ]
         }
     ]
