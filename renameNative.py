@@ -23,7 +23,7 @@ ios_src_path = ""
 project_file_path = ""
 ignore_path_set = set()
 
-ignore_path_text = [".a", ".png", ".plist", ".pch",".jpg",".xcassets",".DS_Store",".sks"]
+ignore_path_text = [".a", ".png", ".plist", ".pch",".jpg",".xcassets",".DS_Store",".sks",".mp3",'.txt']
 
 #首字母大写
 def isNeedIgnore(file_path):
